@@ -1,11 +1,10 @@
 import requests
 import time
 import csv
-from collections import defaultdict
 
-def get_filtered_mexc_tokens_and_tickers(allowed_quotes=("USDT", "USDC")):
+def get_mexc_usd_pairs_flat(allowed_quotes=("USDT", "USDC")):
     url = "https://api.mexc.com/api/v3/exchangeInfo"
-    token_ticker_map = defaultdict(list)
+    token_rows = []
 
     headers = {
         "User-Agent": "Chrome/5.0",
@@ -19,31 +18,30 @@ def get_filtered_mexc_tokens_and_tickers(allowed_quotes=("USDT", "USDC")):
         symbols = data.get("symbols", [])
 
         for symbol in symbols:
-            base_asset = symbol.get("baseAsset")
             quote_asset = symbol.get("quoteAsset")
             symbol_name = symbol.get("symbol")
 
-            # Only allow USDT/USDC quoted pairs
             if base_asset and quote_asset in allowed_quotes and symbol_name:
-                token_ticker_map[base_asset].append(symbol_name)
+                # Each row is Token ID (symbol), Token Name (base asset), Ticker (symbol)
+                token_rows.append([base_asset, symbol_name])
 
-        print(f"✅ Total unique base tokens (USDT/USDC only): {len(token_ticker_map)}\n")
+        print(f"✅ Total USDT/USDC trading pairs: {len(token_rows)}")
 
         # Save to CSV
-        with open("MEXC_USD_Tokens_and_Tickers.csv", mode="w", newline="", encoding="utf-8") as file:
+        with open("MEXCTokens.csv", mode="w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
-            writer.writerow(["Token", "Tickers"])  # Header
-            for token, tickers in sorted(token_ticker_map.items()):
-                writer.writerow([token, ", ".join(tickers)])
+            writer.writerow(["Token Name", "Ticker"])
+            for row in token_rows:
+                writer.writerow(row)
 
         print("💾 Data saved to MEXCTokens.csv")
-        return token_ticker_map
+        return token_rows
 
     except requests.exceptions.RequestException as e:
         print(f"Connection error: {e}")
-        return {}
+        return []
 
 if __name__ == "__main__":
-    token_map = get_filtered_mexc_tokens_and_tickers()
-    for token, tickers in list(token_map.items())[:10]:  # Preview first 10
-        print(f"{token}: {tickers}")
+    tokens = get_mexc_usd_pairs_flat()
+    for row in tokens[:10]:  # Show first 10 rows
+        print(row)
