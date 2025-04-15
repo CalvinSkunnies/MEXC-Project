@@ -2,9 +2,10 @@ import requests
 import time
 import csv
 
-def get_mexc_usd_pairs_flat(allowed_quotes=("USDT", "USDC")):
+def get_all_mexc_usd_pairs(allowed_quotes=("USDT", "USDC")):
     url = "https://api.mexc.com/api/v3/exchangeInfo"
     token_rows = []
+    seen_pairs = set()
 
     headers = {
         "User-Agent": "Chrome/5.0",
@@ -18,19 +19,22 @@ def get_mexc_usd_pairs_flat(allowed_quotes=("USDT", "USDC")):
         symbols = data.get("symbols", [])
 
         for symbol in symbols:
+            base_asset = symbol.get("baseAsset")
             quote_asset = symbol.get("quoteAsset")
-            symbol_name = symbol.get("symbol")
 
-            if quote_asset in allowed_quotes and symbol_name:
-                # Each row is Token ID (symbol), Token Name (base asset), Ticker (symbol)
-                token_rows.append([quoteAsset, symbol_name])
+            if base_asset and quote_asset in allowed_quotes:
+                pair_key = f"{base_asset}_{quote_asset}"
+
+                if pair_key not in seen_pairs:
+                    seen_pairs.add(pair_key)
+                    token_rows.append([base_asset, base_asset, quote_asset])  # Token Name = Ticker = base_asset
 
         print(f"✅ Total USDT/USDC trading pairs: {len(token_rows)}")
 
         # Save to CSV
         with open("MEXCTokens.csv", mode="w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
-            writer.writerow(["Token Name", "Ticker"])
+            writer.writerow(["Token Name", "Ticker", "Pair"])
             for row in token_rows:
                 writer.writerow(row)
 
@@ -42,6 +46,6 @@ def get_mexc_usd_pairs_flat(allowed_quotes=("USDT", "USDC")):
         return []
 
 if __name__ == "__main__":
-    tokens = get_mexc_usd_pairs_flat()
-    for row in tokens[:10]:  # Show first 10 rows
+    token_data = get_all_mexc_usd_pairs()
+    for row in token_data[:10]:  # preview first 10
         print(row)
