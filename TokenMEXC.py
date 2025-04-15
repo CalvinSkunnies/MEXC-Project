@@ -42,7 +42,8 @@ def merge_and_save():
         writer.writerow([
             "Token Name", "Ticker", "Pair", "Symbol",
             "Price Change", "% Change", "Last Price",
-            "Volume", "Quote Volume", "High", "Low", "Open Price"
+            "Volume", "Quote Volume", "High", "Low", "Open Price",
+            "Bid Price", "Ask Price"
         ])
 
         for token in tokens:
@@ -61,7 +62,9 @@ def merge_and_save():
                 data.get("quoteVolume", ""),
                 data.get("highPrice", ""),
                 data.get("lowPrice", ""),
-                data.get("openPrice", "")
+                data.get("openPrice", ""),
+                data.get("bidPrice", ""),
+                data.get("askPrice", "")
             ])
 
     print(f"✅ Merged CSV saved as {filename}")
