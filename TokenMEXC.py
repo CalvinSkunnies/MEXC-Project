@@ -21,9 +21,9 @@ def get_mexc_usd_pairs_flat(allowed_quotes=("USDT", "USDC")):
             quote_asset = symbol.get("quoteAsset")
             symbol_name = symbol.get("symbol")
 
-            if base_asset and quote_asset in allowed_quotes and symbol_name:
+            if quote_asset in allowed_quotes and symbol_name:
                 # Each row is Token ID (symbol), Token Name (base asset), Ticker (symbol)
-                token_rows.append([base_asset, symbol_name])
+                token_rows.append([quoteAsset, symbol_name])
 
         print(f"✅ Total USDT/USDC trading pairs: {len(token_rows)}")
 
