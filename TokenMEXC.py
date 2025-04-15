@@ -36,7 +36,7 @@ def get_filtered_mexc_tokens_and_tickers(allowed_quotes=("USDT", "USDC")):
             for token, tickers in sorted(token_ticker_map.items()):
                 writer.writerow([token, ", ".join(tickers)])
 
-        print("💾 Data saved to MEXC_USD_Tokens_and_Tickers.csv")
+        print("💾 Data saved to MEXCTokens.csv")
         return token_ticker_map
 
     except requests.exceptions.RequestException as e:
