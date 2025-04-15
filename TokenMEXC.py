@@ -2,50 +2,69 @@ import requests
 import time
 import csv
 
-def get_all_mexc_usd_pairs(allowed_quotes=("USDT", "USDC")):
+def get_token_pairs_usd():
     url = "https://api.mexc.com/api/v3/exchangeInfo"
+    headers = { "User-Agent": "Chrome/5.0" }
+    response = requests.get(url, headers=headers, timeout=10)
+    response.raise_for_status()
+
+    symbols = response.json().get("symbols", [])
     token_rows = []
-    seen_pairs = set()
 
-    headers = {
-        "User-Agent": "Chrome/5.0",
-    }
+    for symbol in symbols:
+        base = symbol.get("baseAsset")
+        quote = symbol.get("quoteAsset")
+        if quote in ("USDT", "USDC"):
+            token_rows.append({
+                "Token Name": base,
+                "Ticker": base,
+                "Pair": quote,
+                "Symbol": base + quote
+            })
 
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        time.sleep(0.75)
-        response.raise_for_status()
-        data = response.json()
-        symbols = data.get("symbols", [])
+    return token_rows
 
-        for symbol in symbols:
-            base_asset = symbol.get("baseAsset")
-            quote_asset = symbol.get("quoteAsset")
+def get_24hr_stats():
+    url = "https://api.mexc.com/api/v3/ticker/24hr"
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
 
-            if base_asset and quote_asset in allowed_quotes:
-                pair_key = f"{base_asset}_{quote_asset}"
+    stats = response.json()
+    return { item["symbol"]: item for item in stats }
 
-                if pair_key not in seen_pairs:
-                    seen_pairs.add(pair_key)
-                    token_rows.append([base_asset, base_asset, quote_asset])  # Token Name = Ticker = base_asset
+def merge_and_save():
+    tokens = get_token_pairs_usd()
+    stats = get_24hr_stats()
 
-        print(f"✅ Total USDT/USDC trading pairs: {len(token_rows)}")
+    filename = "MEXCData.csv"
+    with open(filename, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow([
+            "Token Name", "Ticker", "Pair", "Symbol",
+            "Price Change", "% Change", "Last Price",
+            "Volume", "Quote Volume", "High", "Low", "Open Price"
+        ])
 
-        # Save to CSV
-        with open("MEXCTokens.csv", mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            writer.writerow(["Token Name", "Ticker", "Pair"])
-            for row in token_rows:
-                writer.writerow(row)
+        for token in tokens:
+            symbol = token["Symbol"]
+            data = stats.get(symbol, {})
 
-        print("💾 Data saved to MEXCTokens.csv")
-        return token_rows
+            writer.writerow([
+                token["Token Name"],
+                token["Ticker"],
+                token["Pair"],
+                symbol,
+                data.get("priceChange", ""),
+                data.get("priceChangePercent", ""),
+                data.get("lastPrice", ""),
+                data.get("volume", ""),
+                data.get("quoteVolume", ""),
+                data.get("highPrice", ""),
+                data.get("lowPrice", ""),
+                data.get("openPrice", "")
+            ])
 
-    except requests.exceptions.RequestException as e:
-        print(f"Connection error: {e}")
-        return []
+    print(f"✅ Merged CSV saved as {filename}")
 
 if __name__ == "__main__":
-    token_data = get_all_mexc_usd_pairs()
-    for row in token_data[:10]:  # preview first 10
-        print(row)
+    merge_and_save()
