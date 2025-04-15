@@ -1,14 +1,14 @@
 import requests
 import time
 import csv
+from collections import defaultdict
 
-def get_all_mexc_token_symbols():
+def get_filtered_mexc_tokens_and_tickers(allowed_quotes=("USDT", "USDC")):
     url = "https://api.mexc.com/api/v3/exchangeInfo"
-    all_tokens = set()
+    token_ticker_map = defaultdict(list)
 
     headers = {
-        "User-Agent": "Chrome/5.0",  # Helps avoid connection issues
-        # "X-MEXC-APIKEY": "mx0vglMdf1KwfydbVr"  # Optional if required in future
+        "User-Agent": "Chrome/5.0",
     }
 
     try:
@@ -20,27 +20,30 @@ def get_all_mexc_token_symbols():
 
         for symbol in symbols:
             base_asset = symbol.get("baseAsset")
-            if base_asset:
-                all_tokens.add(base_asset)
+            quote_asset = symbol.get("quoteAsset")
+            symbol_name = symbol.get("symbol")
 
-        token_list = sorted(all_tokens)
-        print(f"✅ Total unique tokens on MEXC: {len(token_list)}\n")
+            # Only allow USDT/USDC quoted pairs
+            if base_asset and quote_asset in allowed_quotes and symbol_name:
+                token_ticker_map[base_asset].append(symbol_name)
+
+        print(f"✅ Total unique base tokens (USDT/USDC only): {len(token_ticker_map)}\n")
 
         # Save to CSV
-        with open("MEXCTokens.csv", mode="w", newline="", encoding="utf-8") as file:
+        with open("MEXC_USD_Tokens_and_Tickers.csv", mode="w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
-            writer.writerow(["Token"])  # Header
-            for token in token_list:
-                writer.writerow([token])
+            writer.writerow(["Token", "Tickers"])  # Header
+            for token, tickers in sorted(token_ticker_map.items()):
+                writer.writerow([token, ", ".join(tickers)])
 
-        print("💾 Tokens saved to MEXCTokens.csv")
-        return token_list
+        print("💾 Data saved to MEXC_USD_Tokens_and_Tickers.csv")
+        return token_ticker_map
 
     except requests.exceptions.RequestException as e:
         print(f"Connection error: {e}")
-        return []
+        return {}
 
 if __name__ == "__main__":
-    tokens = get_all_mexc_token_symbols()
-    for token in tokens:
-        print(token)
+    token_map = get_filtered_mexc_tokens_and_tickers()
+    for token, tickers in list(token_map.items())[:10]:  # Preview first 10
+        print(f"{token}: {tickers}")
