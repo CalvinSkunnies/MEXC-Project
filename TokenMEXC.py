@@ -32,6 +32,51 @@ def get_24hr_stats():
     stats = response.json()
     return { item["symbol"]: item for item in stats }
 
+def get_order_book(symbol, limit=1000):
+    url = f"https://api.mexc.com/api/v3/depth"
+    params = {
+        "symbol": symbol,
+        "limit": limit
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("bids", []), data.get("asks", [])
+    except Exception as e:
+        print(f"❌ Error fetching depth for {symbol}: {e}")
+        return [], []
+
+def calculate_depth_plus_minus_2_percent(symbol):
+    bids, asks = get_order_book(symbol)
+
+    if not bids or not asks:
+        return 0, 0
+
+    try:
+        best_bid = float(bids[0][0])
+        best_ask = float(asks[0][0])
+        mid_price = (best_bid + best_ask) / 2
+
+        lower_bound = mid_price * 0.98
+        upper_bound = mid_price * 1.02
+
+        # Depth -2% (Buy liquidity)
+        buy_depth = sum(float(price) * float(qty)
+                        for price, qty in bids
+                        if float(price) >= lower_bound)
+
+        # Depth +2% (Sell liquidity)
+        sell_depth = sum(float(price) * float(qty)
+                         for price, qty in asks
+                         if float(price) <= upper_bound)
+
+        return buy_depth, sell_depth
+    except Exception as e:
+        print(f"❌ Error calculating depth for {symbol}: {e}")
+        return 0, 0
+
 def merge_and_save():
     tokens = get_token_pairs_usd()
     stats = get_24hr_stats()
@@ -43,12 +88,16 @@ def merge_and_save():
             "Token Name", "Ticker", "Pair", "Symbol",
             "Price Change", "% Change", "Last Price",
             "Volume", "Quote Volume", "High", "Low", "Open Price",
-            "Bid Price", "Ask Price"
+            "Bid Price", "Ask Price",
+            "Depth -2%", "Depth +2%"
         ])
 
         for token in tokens:
             symbol = token["Symbol"]
             data = stats.get(symbol, {})
+
+            # Pull order book depth data
+            buy_depth, sell_depth = calculate_depth_plus_minus_2_percent(symbol)
 
             writer.writerow([
                 token["Token Name"],
@@ -64,10 +113,13 @@ def merge_and_save():
                 data.get("lowPrice", ""),
                 data.get("openPrice", ""),
                 data.get("bidPrice", ""),
-                data.get("askPrice", "")
+                data.get("askPrice", ""),
+                round(buy_depth, 2),
+                round(sell_depth, 2)
             ])
+            time.sleep(0.2)  # small delay to avoid rate limit
 
-    print(f"✅ Merged CSV saved as {filename}")
+    print(f"✅ Final MEXC CSV saved as: {filename}")
 
 if __name__ == "__main__":
     merge_and_save()
