@@ -38,7 +38,9 @@ jobs:
 
       - name: Run Python scripts
         run: |
-          python TokenMEXC.py
+          python checkMEXC.py
+      #    python TokenMEXC.py
+          
           
       - name: Commit and Push Changes
         env:
