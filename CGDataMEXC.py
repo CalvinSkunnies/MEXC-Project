@@ -14,7 +14,7 @@ def load_tokens(file_path):
 
 # Fetch full list of coins from CoinGecko (name, symbol, id)
 def get_all_coins_list():
-    url = f"{BASE_URL}/coins/list"
+    url = f"{BASE_URL}/coins/list/{API_KEY}"
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
     return response.json()
