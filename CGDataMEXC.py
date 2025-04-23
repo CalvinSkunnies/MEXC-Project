@@ -83,9 +83,9 @@ def main():
 if __name__ == "__main__":
     main()
 
-            print(f"❌ Error on batch {i+1}: {e}")
+        print(f"❌ Error on batch {i+1}: {e}")
         
-        time.sleep(1)  # avoid hitting rate limits
+        time.sleep(0.5)  # avoid hitting rate limits
 
     return all_data
 
