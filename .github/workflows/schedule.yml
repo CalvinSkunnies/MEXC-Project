@@ -2,7 +2,7 @@ name: Scheduled Python Script
 
 on:
   schedule:
-    - cron: '0 */1 * * *'  # Runs every 1 hours
+    - cron: '0 */72 * * *'  # Runs every 24 hours
   push:
     branches:
       - main
@@ -39,7 +39,7 @@ jobs:
       - name: Run Python scripts
         run: |
           python TokenMEXC.py
-      #   python checkMEXC.py
+          python CGDataMEXC.py
           
           
           
