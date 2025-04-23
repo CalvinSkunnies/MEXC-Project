@@ -38,8 +38,8 @@ jobs:
 
       - name: Run Python scripts
         run: |
-          python TokenMEXC.py
-          python CGDataMEXC.py
+       #   python TokenMEXC.py
+       #   python CGDataMEXC.py
           
           
           
