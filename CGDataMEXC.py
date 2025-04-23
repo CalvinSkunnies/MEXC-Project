@@ -82,21 +82,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    print(f"❌ Error on batch {i+1}: {e}")
-        
-    time.sleep(0.5)  # avoid hitting rate limits
-    
-return all_data
-
-# Main script
-def main():
-    token_ids = load_token_ids("MEXCData.csv")  # Replace with your CSV file
-    market_data = fetch_market_data(token_ids)
-
-    df = pd.DataFrame(market_data)
-    df.to_csv("MEXCData[2].csv", index=False)
-    print("✅ All done. Data saved to MEXCData[2].csv")
-
-if __name__ == "__main__":
-    main()
