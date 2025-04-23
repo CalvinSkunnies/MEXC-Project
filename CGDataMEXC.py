@@ -10,7 +10,7 @@ HEADERS = {"x_cg_pro_api_key": API_KEY}
 # Load your token names or symbols
 def load_tokens(file_path):
     df = pd.read_csv(file_path)  # expects a column "Token"
-    return df["Token"].dropna().tolist()
+    return df["Token Name"].dropna().tolist()
 
 # Fetch full list of coins from CoinGecko (name, symbol, id)
 def get_all_coins_list():
@@ -77,7 +77,7 @@ def main():
         })
 
     df = pd.DataFrame(output)
-    df.to_csv("matched_token_data.csv", index=False)
+    df.to_csv("MEXCData[2].csv", index=False)
     print("✅ Saved to matched_token_data.csv")
 
 if __name__ == "__main__":
