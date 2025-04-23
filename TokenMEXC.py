@@ -117,7 +117,7 @@ def merge_and_save():
                 round(buy_depth, 2),
                 round(sell_depth, 2)
             ])
-            time.sleep(0.2)  # small delay to avoid rate limit
+            time.sleep(0.1)  # small delay to avoid rate limit
 
     print(f"✅ Final MEXC CSV saved as: {filename}")
 
