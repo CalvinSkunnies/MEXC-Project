@@ -49,7 +49,7 @@ def fetch_market_data(matched_ids):
 
 # Main script
 def main():
-    input_file = "token_names.csv"  # contains a column "Token"
+    input_file = "MEXCData.csv"  # contains a column "Token"
     token_list = load_tokens(input_file)
 
     print("🔍 Fetching all tokens from CoinGecko...")
