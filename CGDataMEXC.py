@@ -96,8 +96,8 @@ def main():
         })
 
     df = pd.DataFrame(output)
-    df.to_csv("MEXCData[2].csv", index=False)
-    print("✅ Saved to MEXCData[2].csv")
+    df.to_csv("MEXCData2.csv", index=False)
+    print("✅ Saved to MEXCData2.csv")
 
 if __name__ == "__main__":
     main()
