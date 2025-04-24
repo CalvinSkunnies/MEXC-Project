@@ -2,24 +2,23 @@ import requests
 import pandas as pd
 import time
 
-# ✅ Use CoinGecko Pro API Key
+# ✅ CoinGecko Pro API Key
 API_KEY = "CG-MfMJsvzUhR8PtJfvvSRi1UEm"
 BASE_URL = "https://pro-api.coingecko.com/api/v3"
-HEADERS = {"x_cg_pro_api_key": API_KEY}
 
-# Load your token names or symbols
+# Load token names from CSV
 def load_tokens(file_path):
-    df = pd.read_csv(file_path)  # expects a column "Token Name"
+    df = pd.read_csv(file_path)
     return df["Token Name"].dropna().tolist()
 
-# Fetch full list of coins from CoinGecko (name, symbol, id)
+# Fetch all CoinGecko coins list
 def get_all_coins_list():
-    url = f"{BASE_URL}/coins/list/{API_KEY}"
-    response = requests.get(url, headers=HEADERS)
+    url = f"{BASE_URL}/coins/list?x_cg_pro_api_key={API_KEY}"
+    response = requests.get(url)
     response.raise_for_status()
     return response.json()
 
-# Match token name or symbol to CoinGecko ID
+# Match input tokens to CoinGecko IDs
 def match_token_ids(token_list, all_coins):
     matched = {}
     unmatched = []
@@ -37,48 +36,54 @@ def match_token_ids(token_list, all_coins):
 
     return matched, unmatched
 
-# Fetch market data from CoinGecko for matched tokens (in batches of 250)
+# Fetch market data from CoinGecko (batch)
 def fetch_market_data(matched_ids):
     ids_list = list(matched_ids.values())
     output = []
 
-    for i in range(0, len(ids_list), 250):  # API limit per call
+    for i in range(0, len(ids_list), 250):  # Max 250 per call
         batch_ids = ids_list[i:i+250]
         ids_param = ",".join(batch_ids)
+        url = f"{BASE_URL}/coins/markets?vs_currency=usd&ids={ids_param}&x_cg_pro_api_key={API_KEY}"
 
-        url = f"{BASE_URL}/coins/markets"
-        params = {
-            "vs_currency": "usd",
-            "ids": ids_param
-        }
-
-        response = requests.get(url, headers=HEADERS, params=params)
+        response = requests.get(url)
         response.raise_for_status()
         data = response.json()
         output.extend(data)
-        time.sleep(1.2)  # to respect Pro plan rate limits
+        time.sleep(1.2)
 
     return output
 
+# Fetch coin categories using your preferred format
+def get_coin_categories(coin_id):
+    url = f"{BASE_URL}/coins/{coin_id}?x_cg_pro_api_key={API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        return ', '.join(data.get("categories", []))
+    except Exception as e:
+        print(f"Error fetching categories for {coin_id}: {e}")
+        return "Unknown"
+
 # Main script
 def main():
-    input_file = "MEXCData.csv"  # contains a column "Token Name"
+    input_file = "MEXCData.csv"
     token_list = load_tokens(input_file)
 
     print("🔍 Fetching all tokens from CoinGecko...")
     all_coins = get_all_coins_list()
 
-    print("🔗 Matching input tokens to CoinGecko IDs...")
+    print("🔗 Matching tokens...")
     matched, unmatched = match_token_ids(token_list, all_coins)
+    print(f"✅ Matched: {len(matched)} | ❌ Unmatched: {unmatched}")
 
-    print(f"✅ Matched: {len(matched)} tokens")
-    print(f"❌ Unmatched: {unmatched}")
-
-    print("📊 Fetching market data for matched tokens...")
+    print("📊 Fetching market data...")
     data = fetch_market_data(matched)
 
     output = []
     for token in data:
+        category = get_coin_categories(token["id"])
         output.append({
             "Input Token": [k for k, v in matched.items() if v == token["id"]][0],
             "CoinGecko ID": token["id"],
@@ -87,6 +92,7 @@ def main():
             "Market Cap": token.get("market_cap"),
             "FDV": token.get("fully_diluted_valuation"),
             "24H Volume": token.get("total_volume"),
+            "Categories": category,
         })
 
     df = pd.DataFrame(output)
