@@ -23,10 +23,12 @@ def get_current_market_data(coin_id):
         market_cap = data.get("market_data", {}).get("market_cap", {}).get("usd", None)
         fdv = data.get("market_data", {}).get("fully_diluted_valuation", {}).get("usd", None)
         volume24h = data.get("market_data", {}).get("total_volume", {}).get("usd", None)
-        return market_cap, fdv, volume24h
+        name = data.get("name", None)
+        symbol = data.get("symbol", None)
+        return market_cap, fdv, volume24h, name, symbol
     except Exception as e:
         print(f"Error fetching current market data for {coin_id}: {e}")
-        return None, None, None
+        return None, None, None, None, None
 
 # Function to fetch Order Book Depth (±2%) from Bybit
 def fetch_depth(coin_id):
@@ -823,7 +825,7 @@ def main():
         time.sleep(0.3)
 
         # Get Current Market Cap & FDV
-        market_cap_today, fdv_today, volume24h = get_current_market_data(coin_id)
+        market_cap_today, fdv_today, volume24h, token_name, ticker = get_current_market_data(coin_id)
 
         # Fetch Order Book Depth & Liquidity Metrics
         bid_ask_spread, depth_plus_2, depth_minus_2 = fetch_depth(coin_id)
@@ -837,6 +839,8 @@ def main():
             "Exchange": EXCHANGE_NAME,
             "Category": category,
             "Token CEX": coin_id,
+            "Token Name": token_name,
+            "Ticker": ticker,
             "Market Cap Today": market_cap_today,
             "FDV Today": fdv_today,
             "Depth +2%": depth_plus_2,
