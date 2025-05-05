@@ -1,53 +1,38 @@
 import requests
-import csv
-import time
+import pandas as pd
 
-def fetch_mexc_ohlcv(symbol, interval="1h", limit=50):
-    url = "https://api.mexc.com/api/v3/klines"
+def fetch_ohlcv(symbol: str, interval: str = '1h', limit: int = 100):
+    """
+    Fetch OHLCV data from MEXC for a given trading pair.
+    """
+    url = 'https://api.mexc.com/api/v3/klines'
     params = {
-        "symbol": symbol,
-        "interval": interval,
-        "limit": limit
+        'symbol': symbol,
+        'interval': interval,
+        'limit': limit
     }
 
     try:
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url, params=params)
         response.raise_for_status()
-        raw = response.json()
+        data = response.json()
 
-        return [
-            {
-                "Time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(entry[0] // 1000)),
-                "Open": float(entry[1]),
-                "High": float(entry[2]),
-                "Low": float(entry[3]),
-                "Close": float(entry[4]),
-                "Volume": float(entry[5]),
-                "Symbol": symbol
-            }
-            for entry in raw
-        ]
+        df = pd.DataFrame(data, columns=[
+            'timestamp', 'open', 'high', 'low', 'close', 'volume',
+            'close_time', 'quote_asset_volume', 'num_trades',
+            'taker_buy_base_volume', 'taker_buy_quote_volume', 'ignore'
+        ])
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df['symbol'] = symbol
+        return df[['symbol', 'timestamp', 'open', 'high', 'low', 'close', 'volume']]
 
-    except Exception as e:
-        print(f"❌ Failed to fetch {symbol}: {e}")
-        return []
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data for {symbol}: {e}")
+        return None
 
-def save_to_csv(data, filename="mexc_ohlcv.csv"):
-    if not data:
-        print("No data to save.")
-        return
-
-    with open(filename, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=data[0].keys())
-        writer.writeheader()
-        writer.writerows(data)
-
-    print(f"✅ Saved OHLCV to {filename}")
-
-def main():
-    # Only base symbols; we'll assume USDT pairs like ETHUSDT, DOGEUSDT
-    base_symbols = [
-        'BROCK',
+# Base tokens (without USDT)
+base_tokens = [
+'BROCK',
 'BNT',
 'NTX',
 'DEVVE',
@@ -2742,16 +2727,20 @@ def main():
 'FLDT',
 'ROOST',
 'TIM'
-        ]  # Replace with your base tokens
-    all_data = []
+]  # You can edit this list
+quote_currency = 'USDT'
 
-    for base in base_symbols:
-        trading_pair = base.upper() + "USDT"
-        ohlcv = fetch_mexc_ohlcv(trading_pair)
-        all_data.extend(ohlcv)
-        time.sleep(0.1)  # avoid rate limiting
+# Build full trading pairs and fetch
+all_data = []
+for token in base_tokens:
+    pair = f"{token.upper()}{quote_currency}"
+    df = fetch_ohlcv(pair, interval='1h', limit=100)
+    if df is not None:
+        all_data.append(df)
 
-    save_to_csv(all_data)
-
-if __name__ == "__main__":
-    main()
+# Combine and show result
+if all_data:
+    result = pd.concat(all_data, ignore_index=True)
+    print(result)
+else:
+    print("No data fetched.")
