@@ -13,17 +13,24 @@ start_date = '2025-01-01'
 start_timestamp = int(datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp() * 1000)
 
 def get_valid_symbols():
-    url = 'https://api.mexc.com/api/v3/exchangeInfo'
+    url = 'https://api.mexc.com/api/v3/exchangeInfo'  # Verify this endpoint
     headers = {
         'X-MEXC-API-KEY': API_KEY
     }
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    data = response.json()
-    return {item['symbol'] for item in data['symbols']}
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return {item['symbol'] for item in data['symbols']}
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error occurred: {e}")
+        return set()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return set()
 
 def fetch_ohlcv(symbol: str, interval: str = '1w', start_time: int = None):
-    url = 'https://api.mexc.com/api/v3/klines'
+    url = 'https://api.mexc.com/api/v3/klines'  # Verify this endpoint
     params = {
         'symbol': symbol,
         'interval': interval,
@@ -79,7 +86,7 @@ for token in base_tokens:
 # Save to CSV
 if all_data:
     result_df = pd.concat(all_data, ignore_index=True)
-    result_df.to_csv('mexc_ohlcv_weekly.csv', index=False)
-    print("✅ Data saved to mexc_ohlcv_weekly.csv")
+    result_df.to_csv('mexc_historical.csv', index=False)
+    print("✅ Data saved to mexc_historical.csv")
 else:
     print("❌ No data to save.")
