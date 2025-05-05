@@ -32,7 +32,7 @@ def fetch_mexc_ohlcv(symbol, interval="1h", limit=50):
         print(f"❌ Failed to fetch {symbol}: {e}")
         return []
 
-def save_to_csv(data, filename="MEXC_OHLV.csv"):
+def save_to_csv(data, filename="mexc_ohlcv.csv"):
     if not data:
         print("No data to save.")
         return
@@ -45,9 +45,9 @@ def save_to_csv(data, filename="MEXC_OHLV.csv"):
     print(f"✅ Saved OHLCV to {filename}")
 
 def main():
-    # Example token symbols (you can load this list from a file or from CoinGecko IDs)
+    # Only base symbols; we'll assume USDT pairs like ETHUSDT, DOGEUSDT
     base_symbols = [
-     'BROCK',
+        'BROCK',
 'BNT',
 'NTX',
 'DEVVE',
@@ -2742,15 +2742,14 @@ def main():
 'FLDT',
 'ROOST',
 'TIM'
-    ]  # Replace with actual base symbols
-    quote = "USDT"
-
+        ]  # Replace with your base tokens
     all_data = []
+
     for base in base_symbols:
-        trading_pair = base.upper() + quote
+        trading_pair = base.upper() + "USDT"
         ohlcv = fetch_mexc_ohlcv(trading_pair)
         all_data.extend(ohlcv)
-        time.sleep(0.5)
+        time.sleep(0.1)  # avoid rate limiting
 
     save_to_csv(all_data)
 
