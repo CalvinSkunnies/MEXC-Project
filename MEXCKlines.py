@@ -2,7 +2,10 @@ import requests
 import pandas as pd
 from datetime import datetime, timezone
 
-# Base tokens (no quote asset)
+# 🔐 Replace with your actual MEXC API Key
+API_KEY = 'mx0vglshXljfc4znMo'
+
+# Base tokens (without quote asset)
 base_tokens = ['BROCK', 'BNT', 'NTX', 'DEVVE']
 quote_assets = ['USDT', 'USDC', 'ETH', 'MX']
 interval = '1w'
@@ -11,7 +14,10 @@ start_timestamp = int(datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=t
 
 def get_valid_symbols():
     url = 'https://api.mexc.com/api/v3/exchangeInfo'
-    response = requests.get(url)
+    headers = {
+        'X-MEXC-API-KEY': API_KEY
+    }
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
     data = response.json()
     return {item['symbol'] for item in data['symbols']}
@@ -26,8 +32,12 @@ def fetch_ohlcv(symbol: str, interval: str = '1w', start_time: int = None):
     if start_time:
         params['startTime'] = start_time
 
+    headers = {
+        'X-MEXC-API-KEY': API_KEY
+    }
+
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
         data = response.json()
         if not data:
@@ -44,7 +54,7 @@ def fetch_ohlcv(symbol: str, interval: str = '1w', start_time: int = None):
         print(f"Error fetching data for {symbol}: {e}")
         return None
 
-# ------------------- Main -------------------
+# ------------------- Main Script -------------------
 
 valid_symbols = get_valid_symbols()
 all_data = []
@@ -56,6 +66,7 @@ for token in base_tokens:
         if pair in valid_symbols:
             df = fetch_ohlcv(pair, interval=interval, start_time=start_timestamp)
             if df is not None and not df.empty:
+                df['pair'] = f"{token.upper()}/{quote}"
                 all_data.append(df)
                 print(f"✅ Fetched: {pair}")
                 found = True
@@ -68,7 +79,7 @@ for token in base_tokens:
 # Save to CSV
 if all_data:
     result_df = pd.concat(all_data, ignore_index=True)
-    result_df.to_csv('mexc_ohlcv.csv', index=False)
-    print("✅ Saved to mexc_ohlcv.csv")
+    result_df.to_csv('mexc_ohlcv_weekly.csv', index=False)
+    print("✅ Data saved to mexc_ohlcv_weekly.csv")
 else:
     print("❌ No data to save.")
