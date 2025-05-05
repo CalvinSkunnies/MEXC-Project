@@ -86,7 +86,7 @@ for token in base_tokens:
 # Save to CSV
 if all_data:
     result_df = pd.concat(all_data, ignore_index=True)
-    result_df.to_csv('mexc_historical.csv', index=False)
-    print("✅ Data saved to mexc_historical.csv")
+    result_df.to_csv('mexc_ohlcv_weekly.csv', index=False)
+    print("✅ Data saved to mexc_ohlcv_weekly.csv")
 else:
     print("❌ No data to save.")
