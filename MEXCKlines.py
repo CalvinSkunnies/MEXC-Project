@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 
-def fetch_ohlcv(symbol: str, interval: str = '1h', limit: int = 100):
+def fetch_ohlcv(symbol: str, interval: str = '1w', limit: int = 100):
     """
     Fetch OHLCV data from MEXC for a given trading pair.
     """
