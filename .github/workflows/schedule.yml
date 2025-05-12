@@ -39,13 +39,11 @@ jobs:
       - name: Run Python scripts
         run: |
           python MEXCKlines.py
-        # python CGDataMEXC.py
-        # python MEXCData3.py
+          python CGDataMEXC.py
+          python MEXCData3.py
           
-               
-          
-          
-          
+              
+                             
       - name: Commit and Push Changes
         env:
           GITHUB_PAT: ${{ secrets.PAT_TOKEN }}
