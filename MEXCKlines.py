@@ -9,7 +9,7 @@ API_KEY = 'mx0vglMdf1KwfydbVr'
 # Configuration
 base_tokens = ['BROCK', 'BNT', 'NTX', 'DEVVE']
 quote_assets = ['USDT', 'USDC']
-interval = '1w'
+interval = '1d'
 start_date = '2025-01-01'
 start_timestamp = int(datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp() * 1000)
 
