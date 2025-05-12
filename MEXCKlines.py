@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timezone
 
 # 🔐 Replace with your actual MEXC API Key
-API_KEY = 'mx0vglshXljfc4znMo'
+API_KEY = 'mx0vglMdf1KwfydbVr'
 
 # Base tokens (without quote asset)
 base_tokens = ['BROCK', 'BNT', 'NTX', 'DEVVE']
