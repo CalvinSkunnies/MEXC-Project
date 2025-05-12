@@ -9,7 +9,7 @@ API_KEY = 'mx0vglMdf1KwfydbVr'
 # Configuration
 base_tokens = ['BROCK', 'BNT', 'NTX', 'DEVVE']
 quote_assets = ['USDT', 'USDC']
-interval = '1d'
+interval = '1w'
 start_date = '2025-01-01'
 start_timestamp = int(datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp() * 1000)
 
@@ -33,7 +33,7 @@ def get_valid_symbols():
         return set()
 
 # Fetch OHLCV
-def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit: int = 1000):
+def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit: int = 500):
     url = 'https://api.mexc.com/api/v3/klines'
     params = {
         'symbol': symbol,
