@@ -11,20 +11,21 @@ base_tokens = ['BROCK', 'BNT', 'NTX', 'DEVVE']
 quote_assets = ['USDT', 'USDC']
 interval = '1d'
 start_date = '2025-01-01'
+end_date = '2025-05-12'
+
+# Convert date strings to timestamps in milliseconds
 start_timestamp = int(datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp() * 1000)
+end_timestamp = int(datetime.strptime(end_date, '%Y-%m-%d').replace(tzinfo=timezone.utc).timestamp() * 1000)
 
-# Rate limiter
+# Rate limiter: MEXC allows 5 req/sec, so 0.21s pause between calls
 def rate_limit_sleep():
-    time.sleep(0.21)  # 0.21s delay = ~4.76 requests/sec
+    time.sleep(0.21)
 
-# Get valid trading pairs
+# Get list of valid trading pairs from MEXC
 def get_valid_symbols():
     url = 'https://api.mexc.com/api/v3/exchangeInfo'
-    headers = {
-        'X-MEXC-API-KEY': API_KEY
-    }
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url)
         response.raise_for_status()
         data = response.json()
         return {item['symbol'] for item in data['symbols']}
@@ -32,8 +33,8 @@ def get_valid_symbols():
         print(f"Error getting valid symbols: {e}")
         return set()
 
-# Fetch OHLCV
-def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit: int = 500):
+# Fetch OHLCV data for a given symbol and date range
+def fetch_ohlcv(symbol: str, interval: str = '1w', start_time: int = None, end_time: int = None, limit: int = 500):
     url = 'https://api.mexc.com/api/v3/klines'
     params = {
         'symbol': symbol,
@@ -42,6 +43,8 @@ def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit
     }
     if start_time:
         params['startTime'] = start_time
+    if end_time:
+        params['endTime'] = end_time
 
     try:
         response = requests.get(url, params=params)
@@ -57,16 +60,20 @@ def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit
         ])
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
         df['symbol'] = symbol
-        return df[['symbol', 'timestamp', 'open', 'high', 'low', 'close', 'volume']]
 
+        # Ensure only data within the desired range
+        df = df[(df['timestamp'] >= pd.to_datetime(start_date)) & (df['timestamp'] <= pd.to_datetime(end_date))]
+
+        return df[['symbol', 'timestamp', 'open', 'high', 'low', 'close', 'volume']]
     except requests.exceptions.RequestException as e:
         print(f"❌ Error fetching OHLCV for {symbol}: {e}")
         return None
 
 # ------------------- Main Script -------------------
 
+print("📥 Fetching valid trading pairs from MEXC...")
 valid_symbols = get_valid_symbols()
-rate_limit_sleep()  # Respect rate limit
+rate_limit_sleep()
 
 all_data = []
 
@@ -75,8 +82,8 @@ for token in base_tokens:
     for quote in quote_assets:
         pair = f"{token.upper()}{quote}"
         if pair in valid_symbols:
-            df = fetch_ohlcv(pair, interval=interval, start_time=start_timestamp)
-            rate_limit_sleep()  # Respect rate limit after each request
+            df = fetch_ohlcv(pair, interval=interval, start_time=start_timestamp, end_time=end_timestamp)
+            rate_limit_sleep()
 
             if df is not None and not df.empty:
                 df['pair'] = f"{token.upper()}/{quote}"
@@ -95,6 +102,6 @@ for token in base_tokens:
 if all_data:
     result_df = pd.concat(all_data, ignore_index=True)
     result_df.to_csv('MEXCKlines.csv', index=False)
-    print("✅ Data saved to MEXCKlines.csv")
+    print("📁 Saved to 'MEXCKlines.csv'")
 else:
-    print("❌ No data to save.")
+    print("🚫 No data collected to save.")
