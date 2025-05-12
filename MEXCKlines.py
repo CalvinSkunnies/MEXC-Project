@@ -2680,7 +2680,7 @@ base_tokens = ['BROCK','BNT','NTX','DEVVE','XOXNO','HTR','GQB','VOXEL','LVN','LO
 'ROOST',
 'TIM']
 quote_assets = ['USDT', 'USDC']
-interval = '1d'
+interval = '1W'
 start_date = '2025-01-01'
 end_date = '2025-05-12'
 
