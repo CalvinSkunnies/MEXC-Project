@@ -33,7 +33,7 @@ def get_valid_symbols():
         return set()
 
 # Fetch OHLCV
-def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit: int = 500):
+def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit: int = 1000):
     url = 'https://api.mexc.com/api/v3/klines'
     params = {
         'symbol': symbol,
@@ -53,8 +53,7 @@ def fetch_ohlcv(symbol: str, interval: str = '1h', start_time: int = None, limit
 
         df = pd.DataFrame(data, columns=[
             'timestamp', 'open', 'high', 'low', 'close', 'volume',
-            'close_time', 'quote_asset_volume', 'num_trades',
-            'taker_buy_base_volume', 'taker_buy_quote_volume', 'ignore'
+            'close_time', 'quote_asset_volume'
         ])
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
         df['symbol'] = symbol
