@@ -95,7 +95,7 @@ for token in base_tokens:
 # Save to CSV
 if all_data:
     result_df = pd.concat(all_data, ignore_index=True)
-        result_df.to_csv('MEXCKlines.csv', index=False)
+    result_df.to_csv('MEXCKlines.csv', index=False)
     print("✅ Data saved to MEXCKlines.csv")
 else:
     print("❌ No data to save.")
