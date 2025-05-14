@@ -41,7 +41,6 @@ jobs:
           python MEXCKlines.py
           python CGDataMEXC.py
           python MEXCData3.py
-          python BinanceData.py
               
                              
       - name: Commit and Push Changes
