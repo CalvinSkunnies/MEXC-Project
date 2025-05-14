@@ -2596,7 +2596,7 @@ def main():
     df_output = pd.DataFrame(results)
 
     # Save the data to a new Excel file with a timestamp in the filename
-    output_file = f"MexcData3.xlsx"
+    output_file = f"BinanceData.xlsx"
     df_output.to_excel(output_file, index=False)
 
     print(f"✅ Data saved to {output_file}")
