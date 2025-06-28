@@ -3,7 +3,7 @@ import pandas as pd
 import time
 
 # ✅ CoinGecko Pro API Key
-API_KEY = "CG-MfMJsvzUhR8PtJfvvSRi1UEm"
+API_KEY = "######"
 BASE_URL = "https://pro-api.coingecko.com/api/v3"
 
 # Load token names from CSV
