@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 
 # Replace with your CoinGecko API Key
-API_KEY = "mx0vglMdf1KwfydbVr"
+API_KEY = "CG-MfMJsvzUhR8PtJfvvSRi1UEm"
 
 # CoinGecko API Base URL
 COINGECKO_URL = "https://pro-api.coingecko.com/api/v3/"
